@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum SubscriptionStatus { 
+  ACTIVE 
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
+enum PaymentMethod {
+  CARD
+  UPI
+  PAYPAL
+}
+
+enum ShowStatus {
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+
+
+model User {
+  id            String                          @id @default(uuid())
+  email         String                          @unique 
+  password      String                      
+  name          String                      
+  role          UserRole                        @default(USER)
+  isVerified    Boolean                         @default(false)
+  createdAt     DateTime                        @default(now())
+  updatedAt     DateTime                        @updatedAt
+  subscription  Subscription?
+  profiles      Profile[]
+  notifications Notification[]
+  billingInfo   BillingInfo?
+  refreshTokens RefreshToken[]
+  payments      Payment[]
+}
+
+model Profile {
+  id                      String                @id @default(uuid())
+  userId                  String              
+  name                    String              
+  avatarUrl               String?             
+  isKid                   Boolean               @default(false)
+  createdAt               DateTime              @default(now())
+  continueWatching        ContinueWatching[]
+  watchHistory            WatchHistory[]
+  watchList               WatchList[]
+  ratings                 Rating[]
+  downloads               Download[]
+
+  user                    User                  @relation(fields: [userId], references: [id])
+}
+
+model SubscriptionPlan { 
+  id                      String                @id @default(uuid())
+  name                    String            
+  price                   Float            
+  maxProfiles             Int            
+  resolution              String            
+  screens                 Int            
+  createdAt               DateTime              @default(now())
+  subscriptions           Subscription[]
+}
+
+model Subscription {
+  id                      String                @id @default(uuid())
+  userId                  String                @unique
+  planId                  String
+  startDate               DateTime
+  endData                 DateTime
+  status                  SubscriptionStatus    @default(ACTIVE)
+
+  user                    User                  @relation(fields: [userId], references: [id])
+  plan                    SubscriptionPlan      @relation(fields: [planId], references: [id])
+}
+
+model Notification { 
+  id                      String                @id @default(uuid())
+  userId                  String
+  title                   String
+  message                 String
+  read                    Boolean               @default(false)
+  createdAt               DateTime              @default(now())
+
+  user                    User                  @relation(fields: [userId], references: [id])
+}
+
+model BillingInfo {
+  id                      String                @id @default(uuid())
+  userId                  String                @unique
+  cardLast4               String
+  cardBrand               String
+  billingEmail            String
+  country                 String
+
+  user                    User                  @relation(fields: [userId], references: [id])
+}
+
+model Payment { 
+  id                      String                @id @default(uuid())
+  userId                  String
+  amount                  Float 
+  status                  PaymentStatus         
+  method                  PaymentMethod         
+  createdAt               DateTime              @default(now())
+
+  user                    User                  @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id                      String                @id @default(uuid())
+  userId                  String
+  token                   String                @unique
+  expiresAt               DateTime
+  createdAt               DateTime              @default(now())
+
+  user                    User                  @relation(fields: [userId], references: [id])
+}
+  
+model Movie { 
+  id                      String                @id @default(uuid())
+  title                   String
+  description             String
+  releaseDate             DateTime
+  duration                Int
+  posterUrl               String
+  videoUrl                String
+  language                String
+  ageRating               String
+  director                String
+  imdbRating              Float?
+  rottenTomatoesRating    Float?
+  createdAt               DateTime              @default(now())
+  genres                  Genre[]               @relation("MovieGenres")
+  cast                    Cast[]                @relation("MovieCast")
+  ratings                 Rating[]
+  continueWatching        ContinueWatching[]
+  watchHistory            WatchHistory[]
+  watchList               WatchList[]
+  downloads               Download[]
+}
+
+model Show { 
+  id                      String                @id @default(uuid())
+  title                   String
+  description             String
+  posterUrl               String
+  language                String
+  ageRating               String
+  status                  ShowStatus            @default(ONGOING)
+  seasonCount             Int
+  imdbRating              Float?
+  rottenTomatoesRating    Float?
+  createdAt               DateTime              @default(now())
+  genres                  Genre[]               @relation("ShowGenres")
+  cast                    Cast[]                @relation("ShowCast")
+  episodes                Episode[]
+  ratings                 Rating[]
+  watchlist               WatchList[]
+}
+
+model Episode { 
+  id                      String                @id @default(uuid())
+  title                   String
+  episodeNumber           Int
+  season                  Int
+  videoUrl                String
+  thumbnailUrl            String?
+  durationMin             Int
+  releaseDate             DateTime
+  showId                  String
+
+  show                    Show                  @relation(fields: [showId], references: [id])
+  continueWatching        ContinueWatching[]
+  watchHistory            WatchHistory[]
+  downloads               Download[]
+}
+
+model Genre { 
+  id                      String                @id @default(uuid())
+  name                    String                @unique
+
+  movies                  Movie[]               @relation("MovieGenres")
+  shows                   Show[]                @relation("ShowGenres")
+}
+
+model Cast{
+  id                      String                @id @default(uuid())
+  name                    String
+  role                    String
+
+  movies                  Movie[]               @relation("MovieCast")
+  shows                   Show[]                @relation("ShowCast")
+}
+
+model ContinueWatching{
+  id                      String                @id @default(uuid())
+  profileId               String
+  movieId                 String?
+  episodeId               String?
+  progress                Float
+  lastWatchedAt           DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  profile                 Profile               @relation(fields: [profileId], references: [id])
+  movie                   Movie?                @relation(fields: [movieId], references: [id])
+  episode                 Episode?              @relation(fields: [episodeId], references: [id])
+}
+
+model WatchHistory{
+  id                      String                @id @default(uuid())
+  profileId               String
+  movieId                 String?
+  episodeId               String?
+  watchedAt               DateTime              @default(now())
+
+  profile                 Profile               @relation(fields: [profileId], references: [id])
+  movie                   Movie?                @relation(fields: [movieId], references: [id])
+  episode                 Episode?              @relation(fields: [episodeId], references: [id])
+}
+
+model Rating {
+  id                      String                @id @default(uuid())
+  profileId               String
+  movieId                 String?
+  showId                  String?
+  value                   Int
+  createdAt               DateTime              @default(now())
+
+  profile                 Profile               @relation(fields: [profileId], references: [id])
+  movie                   Movie?                @relation(fields: [movieId], references: [id])
+  show                    Show?                 @relation(fields: [showId], references: [id])
+}
+
+model WatchList{  
+  id                      String                @id @default(uuid())
+  profileId               String
+  movieId                 String?
+  showId                  String?
+  addedAt               DateTime              @default(now())
+
+  profile                 Profile               @relation(fields: [profileId], references: [id])
+  movie                   Movie?                @relation(fields: [movieId], references: [id])
+  show                    Show?                 @relation(fields: [showId], references: [id])
+}
+
+model Download { 
+  id                      String                @id @default(uuid())
+  profileId               String
+  movieId                 String?
+  episodeId               String?
+  createdAt               DateTime              @default(now())
+
+  profile                 Profile               @relation(fields: [profileId], references: [id])
+  movie                   Movie?                @relation(fields: [movieId], references: [id])
+  episode                 Episode?              @relation(fields: [episodeId], references: [id])
+}
