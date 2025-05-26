@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
