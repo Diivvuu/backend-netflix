@@ -123,6 +123,14 @@ router.post('/google', async (req, res) => {
     }
 
     const authToken = generateToken(user.id);
+    console.log(
+      'User authenticated via Google:',
+      user.id,
+      user.email,
+      user.name,
+      user.role,
+      authToken
+    );
     return res.json({
       token: authToken,
       user: {
