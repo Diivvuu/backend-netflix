@@ -2,6 +2,7 @@ import express from 'express';
 import prisma from '../lib/prisma';
 import { hashPassword, comparePassword, generateToken } from '../lib/auth';
 import { OAuth2Client } from 'google-auth-library';
+import { authenticate, AuthRequest } from '../middleware/auth.middleware';
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -142,6 +143,27 @@ router.post('/google', async (req, res) => {
     });
   } catch (error) {
     console.error('Google auth error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/me', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user?.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        profiles: true,
+        createdAt: true,
+      },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.json({ user });
+  } catch (error) {
+    console.error('Get current user error: ', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

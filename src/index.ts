@@ -5,6 +5,8 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import profileRoutes from './routes/profile.routes';
 import uploadRoutes from './routes/upload.routes'
+import genresRoutes from "./routes/genres.routes"
+import browseRoutes from "./routes/browse.routes"
 
 dotenv.config();
 const app = express();
@@ -17,6 +19,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/me', userRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/upload', uploadRoutes)
+app.use('/api/genres', genresRoutes)
+app.use('/api/browse', browseRoutes)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
