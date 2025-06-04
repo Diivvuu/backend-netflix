@@ -7,6 +7,7 @@ import profileRoutes from './routes/profile.routes';
 import uploadRoutes from './routes/upload.routes'
 import genresRoutes from "./routes/genres.routes"
 import browseRoutes from "./routes/browse.routes"
+import videoRoutes from "./routes/video.routes"
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/upload', uploadRoutes)
 app.use('/api/genres', genresRoutes)
 app.use('/api/browse', browseRoutes)
+app.use('/api/video', videoRoutes)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -6,7 +6,6 @@ import { authenticate } from '../middleware/auth.middleware';
 const router = express.Router();
 
 router.get('/movies', authenticate, async (req, res) => {
-  console.log('confirm sec');
   console.log('TMDB KEY', process.env.TMDB_API_KEY);
 
   try {
